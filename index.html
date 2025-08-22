@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-   <meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Üzemanyag Kalkulátor</title>
 
@@ -9,12 +9,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e293b">
   <link rel="apple-touch-icon" href="icon-512.png">
-  
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FuelCalc – Üzemanyag kalkulátor</title>
-  <meta name="theme-color" content="#0ea5e9" />
-  <link rel="apple-touch-icon" href="#" id="appleIcon">
+
   <style>
     :root{
       --bg: #0b111f;
@@ -30,8 +25,8 @@
     @media (prefers-color-scheme: light){
       :root{ --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ring:rgba(14,165,233,.35);} 
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box; max-width:100%;}
+    html,body{height:100%; width:100%; overflow-x:hidden;}
     body{
       margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Noto Sans", Arial, "Apple Color Emoji", "Segoe UI Emoji";
       background: radial-gradient(1200px 800px at 100% -10%, rgba(14,165,233,.15), transparent),
@@ -41,16 +36,16 @@
       display:grid; place-items:center;
       padding:20px;
     }
-    .wrap{ width:min(720px, 100%); }
+    .wrap{ width:100%; max-width:720px; }
     .app{
       background:var(--card);
       border:1px solid rgba(148,163,184,.15);
       border-radius:24px; padding:20px; 
       box-shadow: 0 10px 30px rgba(2,6,23,.35);
     }
-    header{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px;}
+    header{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap;}
     .brand{ display:flex; gap:10px; align-items:center;}
-    .logo{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, var(--accent), #22c55e); color:white; font-weight:700; }
+    .logo{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, var(--accent), #22c55e); color:white; font-weight:700; flex-shrink:0;}
     .title{ font-size:20px; font-weight:700; letter-spacing:.2px; }
     .muted{ color:var(--muted); font-size:12px;}
 
@@ -61,7 +56,7 @@
     input{ width:100%; padding:14px 14px; background:#0b1220; color:var(--text); border:1px solid rgba(148,163,184,.25); border-radius:14px; outline:none; transition:.2s; }
     @media (prefers-color-scheme: light){ input{ background:#f1f5f9; } }
     input:focus{ border-color:var(--accent); box-shadow:0 0 0 6px var(--ring); }
-    .row{ display:flex; gap:10px; align-items:center; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .row .grow{ flex:1; }
 
     .btn{ cursor:pointer; user-select:none; appearance:none; border:none; padding:12px 14px; border-radius:14px; font-weight:700; }
@@ -76,18 +71,18 @@
     .stat h3{ margin:6px 0 0; font-size:22px; }
     .stat span{ font-size:12px; color:var(--muted); }
 
-    .switch{ display:inline-flex; align-items:center; gap:8px; padding:6px; border-radius:999px; background:#0b1220; border:1px solid rgba(148,163,184,.25); }
+    .switch{ display:inline-flex; align-items:center; gap:8px; padding:6px; border-radius:999px; background:#0b1220; border:1px solid rgba(148,163,184,.25); flex-wrap:wrap;}
     .switch button{ padding:8px 12px; border-radius:999px; border:none; background:transparent; color:var(--muted); font-weight:700; cursor:pointer; }
     .switch button.active{ background:var(--accent); color:white; }
     @media (prefers-color-scheme: light){ .switch{ background:#eef2f7; } }
 
-    .history{ margin-top:16px; }
-    table{ width:100%; border-collapse:collapse; font-size:13px; }
-    th, td{ padding:10px 8px; text-align:left; border-bottom:1px dashed rgba(148,163,184,.2); }
+    .history{ margin-top:16px; overflow-x:auto; }
+    table{ width:100%; min-width:600px; border-collapse:collapse; font-size:13px; }
+    th, td{ padding:10px 8px; text-align:left; border-bottom:1px dashed rgba(148,163,184,.2); white-space:nowrap; }
     th{ color:var(--muted); font-weight:600; }
     tbody tr:hover{ background:rgba(148,163,184,.08); }
 
-    footer{ margin-top:12px; display:flex; align-items:center; justify-content:space-between; }
+    footer{ margin-top:12px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
     .hint{ font-size:12px; color:var(--muted); }
   </style>
 </head>
@@ -165,7 +160,7 @@
               <th>Távolság</th>
               <th>Üzemanyag</th>
               <th>Fogyasztás</th>
-              <th>költség/100</th>
+              <th>Költség/100</th>
               <th>Menet</th>
               <th></th>
             </tr>
@@ -250,7 +245,6 @@
       ui.statCost100.textContent = isFinite(cost100)? fmt(cost100,0) : '–';
       ui.statTripCost.textContent = isFinite(tripCost)? fmt(tripCost,0) : '–';
     } else {
-      // imperial
       const g100mi = (f/d)*100;         // gal / 100 miles
       const mpg = d/f;                  // miles / gallon
       const cost100 = p? g100mi*p : NaN;
@@ -293,11 +287,9 @@
     if(d<=0 || f<=0){ alert('Adj meg távolságot és tankolt mennyiséget!'); return; }
     let main, cost100, tripCost;
     if(units==='metric'){
-      main = (f/d)*100; // L/100km
-      cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
+      main = (f/d)*100; cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
     } else {
-      main = (f/d)*100; // gal/100mi
-      cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
+      main = (f/d)*100; cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
     }
     const it = { t: Date.now(), d, f, p, units, main, cost100, tripCost };
     const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
@@ -305,86 +297,3 @@
     addRow(it);
   }
   function del(t){
-    let arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-    arr = arr.filter(x=>x.t!==t); localStorage.setItem(LS_KEY, JSON.stringify(arr));
-    load();
-  }
-
-  ui.btnSave.onclick = save;
-  ui.btnClear.onclick = ()=>{ ui.distance.value=''; ui.fuel.value=''; ui.price.value=''; calc(); };
-  ui.btnWipe.onclick = ()=>{ if(confirm('Biztosan törlöd az összes mentést?')){ localStorage.removeItem(LS_KEY); load(); } };
-  ui.btnExport.onclick = ()=>{
-    const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-    if(!arr.length){ alert('Nincs mit exportálni.'); return; }
-    const csv = ['date;distance;fuel;consumption;cost_per_100;trip_cost;units'].concat(
-      arr.map(it=>[
-        new Date(it.t).toISOString(),
-        it.d, it.f, it.main, isFinite(it.cost100)?it.cost100:'', isFinite(it.tripCost)?it.tripCost:'', it.units
-      ].join(';'))
-    ).join('\n');
-    const blob = new Blob([csv], {type:'text/csv'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'fuelcalc_export.csv';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-
-  // PWA: manifest + ikon + service worker (minden egy fájlban)
-  (function setupPWA(){
-    // Ikon generálása (512x512 PNG) – egyszerű gradient + ⛽️ emoji
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 512;
-    const ctx = canvas.getContext('2d');
-    const g = ctx.createLinearGradient(0,0,512,512);
-    g.addColorStop(0,'#0ea5e9'); g.addColorStop(1,'#22c55e');
-    ctx.fillStyle = g; ctx.fillRect(0,0,512,512);
-    ctx.fillStyle = 'rgba(255,255,255,.15)';
-    for(let i=0;i<6;i++){ ctx.beginPath(); ctx.arc(80+i*72, 420- i*38, 140, 0, Math.PI*2); ctx.fill(); }
-    ctx.font = 'bold 320px system-ui,Segoe UI Emoji'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle = '#ffffff';
-    ctx.fillText('⛽️', 256, 270);
-    const iconURL = canvas.toDataURL('image/png');
-    document.querySelector('link#appleIcon').href = iconURL;
-
-    const manifest = {
-      name: 'FuelCalc – Üzemanyag kalkulátor',
-      short_name: 'FuelCalc',
-      start_url: '.',
-      display: 'standalone',
-      background_color: '#0b111f',
-      theme_color: '#0ea5e9',
-      icons: [{ src: iconURL, sizes:'512x512', type:'image/png' }]
-    };
-    const mblob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-    const murl = URL.createObjectURL(mblob);
-    const link = document.createElement('link');
-    link.rel='manifest'; link.href = murl; document.head.appendChild(link);
-
-    if('serviceWorker' in navigator){
-      const swCode = `
-        const CACHE='fuelcalc-v1';
-        self.addEventListener('install', e=>{ self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./']))); });
-        self.addEventListener('activate', e=>{ e.waitUntil(self.clients.claim()); });
-        self.addEventListener('fetch', e=>{
-          e.respondWith((async()=>{
-            const r = await caches.match(e.request); if(r) return r; const f = await fetch(e.request); const c = await caches.open(CACHE); c.put(e.request, f.clone()); return f; })());
-        });`;
-      const blob = new Blob([swCode], {type:'text/javascript'});
-      const url = URL.createObjectURL(blob);
-      navigator.serviceWorker.register(url);
-    }
-
-    // Telepítés gomb
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; ui.btnInstall.hidden = false; });
-    ui.btnInstall.addEventListener('click', async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt = null; ui.btnInstall.hidden = true; });
-  })();
-
-  // init
-  refreshUnitUI();
-  load();
-  calc();
-</script>
-
-</body>
-</html>
