@@ -218,6 +218,7 @@
       <footer>
         <span class="hint">PWA: Hozzáadható a főképernyőhöz, működik offline is.</span>
         <button id="btnInstall" class="btn primary" hidden>Telepítés</button>
+        <button id="btnReload" class="btn ghost">Reload</button>
       </footer>
     </div>
   </div>
@@ -247,6 +248,7 @@
     btnMetric: document.getElementById('btnMetric'),
     btnImperial: document.getElementById('btnImperial'),
     appleIcon: document.getElementById('appleIcon'),
+    btnReload: document.getElementById('btnReload')
   };
 
   const LS_KEY = 'fuelcalc_v1';
@@ -370,6 +372,8 @@
     a.click();
     URL.revokeObjectURL(a.href);
   };
+  
+  ui.btnReload.onclick = ()=>{ location.reload(); };
 
   // PWA: manifest + ikon + service worker (minden egy fájlban)
   (function setupPWA(){
