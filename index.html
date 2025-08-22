@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Üzemanyag Kalkulátor</title>
+
+  <!-- Manifest és ikon -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="apple-touch-icon" href="icon-512.png">
+
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: var(--bg, #f1f5f9);
+      color: var(--fg, #1e293b);
+      transition: background 0.3s, color 0.3s;
+    }
+    .card {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      color: black;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    @media (prefers-color-scheme: dark) {
+      .card {
+        background: #1e293b;
+        color: #f8fafc;
+      }
+    }
+    input, button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+    }
+    button {
+      background: #1e293b;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #334155;
+    }
+    .result {
+      margin-top: 1rem;
+      font-weight: bold;
+      text-align: center;
+    }
+    .history {
+      margin-top: 2rem;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .export-btn {
+      margin-top: 1rem;
+      background: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Üzemanyag Kalkulátor</h1>
+    <label>Megtett kilométer:</label>
+    <input type="number" id="distance" placeholder="pl. 320">
+
+    <label>Elhasznált üzemanyag (liter):</label>
+    <input type="number" id="fuel" placeholder="pl. 24">
+
+    <label>Üzemanyag ára (Ft/liter, opcionális):</label>
+    <input type="number" id="price" placeholder="pl. 650">
+
+    <button onclick="calculate()">Számítás</button>
+    <div class="result" id="result"></div>
+
+    <div class="history" id="history"></div>
+    <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+    <button onclick="clearHistory()">Előzmények törlése</button>
+  </div>
+
+  <script>
+    const resultDiv = document.getElementById("result");
+    const historyDiv = document.getElementById("history");
+
+    function calculate() {
+      const distance = parseFloat(document.getElementById('distance').value);
+      const fuel = parseFloat(document.getElementById('fuel').value);
+      const price = parseFloat(document.getElementById('price').value);
+
+      if (!distance || !fuel || distance <= 0 || fuel <= 0) {
+        resultDiv.textContent = "Adj meg érvényes adatokat!";
+        return;
+      }
+
+      const lPer100 = (fuel / distance) * 100;
+      const kmPerL = distance / fuel;
+
+      let text = `Fogyasztás: ${lPer100.toFixed(2)} L / 100 km | ${kmPerL.toFixed(2)} km/L`;
+
+      if (price && price > 0) {
+        const costPer100 = lPer100 * price;
+        text += ` | Költség: ${costPer100.toFixed(0)} Ft / 100 km`;
+      }
+
+      resultDiv.textContent = text;
+      saveHistory(distance, fuel, price, lPer100);
+      renderHistory();
+    }
+
+    function saveHistory(distance, fuel, price, lPer100) {
+      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
+      history.push({ 
+        date: new Date().toLocaleString(), 
+        distance, 
+        fuel, 
+        price: price || null, 
+        lPer100: lPer100.toFixed(2) 
+      });
+      localStorage.setItem("fuelHistory", JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
+      historyDiv.innerHTML = "<h3>Előzmények:</h3>" + history.map(item =>
+        `<div class="history-item">
+          <span>${item.date}</span>
+          <span>${item.lPer100} L/100km</span>
+        </div>`
+      ).join("");
+    }
+
+    function clearHistory() {
+      localStorage.removeItem("fuelHistory");
+      historyDiv.innerHTML = "";
+    }
+
+    function exportCSV() {
+      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
+      if (!history.length) return alert("Nincs exportálható adat!");
+      const header = "Dátum;Távolság (km);Üzemanyag (L);Ár (Ft/L);Fogyasztás (L/100km)\n";
+      const rows = history.map(h => `${h.date};${h.distance};${h.fuel};${h.price || ""};${h.lPer100}`).join("\n");
+      const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "uzemanyag.csv";
+      a.click();
+    }
+
+    renderHistory();
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(err => console.error("SW hiba:", err));
+    }
+  </script>
+</body>
+</html>
