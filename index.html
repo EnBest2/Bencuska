@@ -9,168 +9,382 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1e293b">
   <link rel="apple-touch-icon" href="icon-512.png">
-
+  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FuelCalc – Üzemanyag kalkulátor</title>
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="apple-touch-icon" href="#" id="appleIcon">
   <style>
-    :root {
-      color-scheme: light dark;
+    :root{
+      --bg: #0b111f;
+      --card: #0f172a;
+      --text: #e5e7eb;
+      --muted:#94a3b8;
+      --accent:#0ea5e9;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --err:#ef4444;
+      --ring: rgba(14,165,233,.35);
     }
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      padding: 1rem;
-      background: var(--bg, #f1f5f9);
-      color: var(--fg, #1e293b);
-      transition: background 0.3s, color 0.3s;
+    @media (prefers-color-scheme: light){
+      :root{ --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b; --ring:rgba(14,165,233,.35);} 
     }
-    .card {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      color: black;
-      padding: 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Noto Sans", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 100% -10%, rgba(14,165,233,.15), transparent),
+                  radial-gradient(1000px 600px at -10% 110%, rgba(16,185,129,.12), transparent),
+                  var(--bg);
+      color:var(--text);
+      display:grid; place-items:center;
+      padding:20px;
     }
-    @media (prefers-color-scheme: dark) {
-      .card {
-        background: #1e293b;
-        color: #f8fafc;
-      }
+    .wrap{ width:min(720px, 100%); }
+    .app{
+      background:var(--card);
+      border:1px solid rgba(148,163,184,.15);
+      border-radius:24px; padding:20px; 
+      box-shadow: 0 10px 30px rgba(2,6,23,.35);
     }
-    input, button {
-      width: 100%;
-      padding: 0.75rem;
-      margin-top: 0.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid #cbd5e1;
-      font-size: 1rem;
-    }
-    button {
-      background: #1e293b;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #334155;
-    }
-    .result {
-      margin-top: 1rem;
-      font-weight: bold;
-      text-align: center;
-    }
-    .history {
-      margin-top: 2rem;
-    }
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .export-btn {
-      margin-top: 1rem;
-      background: #16a34a;
-    }
+    header{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:8px;}
+    .brand{ display:flex; gap:10px; align-items:center;}
+    .logo{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, var(--accent), #22c55e); color:white; font-weight:700; }
+    .title{ font-size:20px; font-weight:700; letter-spacing:.2px; }
+    .muted{ color:var(--muted); font-size:12px;}
+
+    .grid{ display:grid; gap:14px; grid-template-columns: 1fr; }
+    @media(min-width:720px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+    label{ display:block; font-size:12px; color:var(--muted); margin:6px 0; }
+    input{ width:100%; padding:14px 14px; background:#0b1220; color:var(--text); border:1px solid rgba(148,163,184,.25); border-radius:14px; outline:none; transition:.2s; }
+    @media (prefers-color-scheme: light){ input{ background:#f1f5f9; } }
+    input:focus{ border-color:var(--accent); box-shadow:0 0 0 6px var(--ring); }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row .grow{ flex:1; }
+
+    .btn{ cursor:pointer; user-select:none; appearance:none; border:none; padding:12px 14px; border-radius:14px; font-weight:700; }
+    .btn.primary{ background:linear-gradient(135deg, var(--accent), #22c55e); color:white; }
+    .btn.ghost{ background:transparent; border:1px solid rgba(148,163,184,.25); color:var(--text); }
+    .btn.danger{ background:linear-gradient(135deg, #ef4444, #f59e0b); color:white; }
+
+    .card{ background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(148,163,184,.15); padding:16px; border-radius:16px; }
+
+    .results{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .stat{ padding:14px; border-radius:14px; border:1px dashed rgba(148,163,184,.35); text-align:center; }
+    .stat h3{ margin:6px 0 0; font-size:22px; }
+    .stat span{ font-size:12px; color:var(--muted); }
+
+    .switch{ display:inline-flex; align-items:center; gap:8px; padding:6px; border-radius:999px; background:#0b1220; border:1px solid rgba(148,163,184,.25); }
+    .switch button{ padding:8px 12px; border-radius:999px; border:none; background:transparent; color:var(--muted); font-weight:700; cursor:pointer; }
+    .switch button.active{ background:var(--accent); color:white; }
+    @media (prefers-color-scheme: light){ .switch{ background:#eef2f7; } }
+
+    .history{ margin-top:16px; }
+    table{ width:100%; border-collapse:collapse; font-size:13px; }
+    th, td{ padding:10px 8px; text-align:left; border-bottom:1px dashed rgba(148,163,184,.2); }
+    th{ color:var(--muted); font-weight:600; }
+    tbody tr:hover{ background:rgba(148,163,184,.08); }
+
+    footer{ margin-top:12px; display:flex; align-items:center; justify-content:space-between; }
+    .hint{ font-size:12px; color:var(--muted); }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Üzemanyag Kalkulátor</h1>
-    <label>Megtett kilométer:</label>
-    <input type="number" id="distance" placeholder="pl. 320">
+  <div class="wrap">
+    <div class="app">
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden>⛽️</div>
+          <div>
+            <div class="title">Üzemanyag-fogyasztás kalkulátor</div>
+            <div class="muted">Egyszerű. Szép. Egy fájl. Offline is.</div>
+          </div>
+        </div>
+        <div class="switch" role="tablist" aria-label="Mértékegység váltó">
+          <button id="btnMetric" class="active" aria-selected="true">km & liter</button>
+          <button id="btnImperial" aria-selected="false">miles & gallons</button>
+        </div>
+      </header>
 
-    <label>Elhasznált üzemanyag (liter):</label>
-    <input type="number" id="fuel" placeholder="pl. 24">
+      <div class="grid">
+        <div class="card">
+          <label for="distance">Megtett távolság <span class="muted" id="unitDistance">(km)</span></label>
+          <input id="distance" type="number" inputmode="decimal" placeholder="pl. 346" min="0" step="0.01">
+          <label for="fuel">Tankolt üzemanyag <span class="muted" id="unitFuel">(liter)</span></label>
+          <input id="fuel" type="number" inputmode="decimal" placeholder="pl. 21.3" min="0" step="0.001">
+          <label for="price">Liter ára <span class="muted" id="unitPrice">(Ft / liter · opcionális)</span></label>
+          <input id="price" type="number" inputmode="decimal" placeholder="pl. 640" min="0" step="0.01">
 
-    <label>Üzemanyag ára (Ft/liter, opcionális):</label>
-    <input type="number" id="price" placeholder="pl. 650">
+          <div class="row" style="margin-top:12px;">
+            <button id="btnSave" class="btn primary grow">Eredmény mentése</button>
+            <button id="btnClear" class="btn ghost">Mezők törlése</button>
+          </div>
+        </div>
 
-    <button onclick="calculate()">Számítás</button>
-    <div class="result" id="result"></div>
+        <div class="card">
+          <div class="results">
+            <div class="stat">
+              <span>Fogyasztás</span>
+              <h3 id="statL100">–</h3>
+              <div class="muted" id="labelL100">liter / 100 km</div>
+            </div>
+            <div class="stat">
+              <span>Hatékonyság</span>
+              <h3 id="statKml">–</h3>
+              <div class="muted" id="labelKml">km / liter</div>
+            </div>
+            <div class="stat">
+              <span>Költség / 100 egység</span>
+              <h3 id="statCost100">–</h3>
+              <div class="muted" id="labelCost100">Ft / 100 km</div>
+            </div>
+            <div class="stat">
+              <span>Menet költsége</span>
+              <h3 id="statTripCost">–</h3>
+              <div class="muted">Ft</div>
+            </div>
+          </div>
+          <div class="hint" style="margin-top:10px">Tipp: csak a távolság és a tankolt mennyiség szükséges. Az ár opcionális.</div>
+        </div>
+      </div>
 
-    <div class="history" id="history"></div>
-    <button class="export-btn" onclick="exportCSV()">Export CSV</button>
-    <button onclick="clearHistory()">Előzmények törlése</button>
+      <div class="history card">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Mentett mérések</strong>
+          <div>
+            <button id="btnExport" class="btn ghost">Export (CSV)</button>
+            <button id="btnWipe" class="btn danger">Összes törlése</button>
+          </div>
+        </div>
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Dátum</th>
+              <th>Távolság</th>
+              <th>Üzemanyag</th>
+              <th>Fogyasztás</th>
+              <th>költség/100</th>
+              <th>Menet</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <footer>
+        <span class="hint">PWA: Hozzáadható a főképernyőhöz, működik offline is.</span>
+        <button id="btnInstall" class="btn primary" hidden>Telepítés</button>
+      </footer>
+    </div>
   </div>
 
-  <script>
-    const resultDiv = document.getElementById("result");
-    const historyDiv = document.getElementById("history");
+<script>
+  const ui = {
+    distance: document.getElementById('distance'),
+    fuel: document.getElementById('fuel'),
+    price: document.getElementById('price'),
+    statL100: document.getElementById('statL100'),
+    statKml: document.getElementById('statKml'),
+    statCost100: document.getElementById('statCost100'),
+    statTripCost: document.getElementById('statTripCost'),
+    rows: document.getElementById('rows'),
+    tbl: document.getElementById('tbl'),
+    btnSave: document.getElementById('btnSave'),
+    btnClear: document.getElementById('btnClear'),
+    btnExport: document.getElementById('btnExport'),
+    btnWipe: document.getElementById('btnWipe'),
+    btnInstall: document.getElementById('btnInstall'),
+    unitDistance: document.getElementById('unitDistance'),
+    unitFuel: document.getElementById('unitFuel'),
+    unitPrice: document.getElementById('unitPrice'),
+    labelL100: document.getElementById('labelL100'),
+    labelKml: document.getElementById('labelKml'),
+    labelCost100: document.getElementById('labelCost100'),
+    btnMetric: document.getElementById('btnMetric'),
+    btnImperial: document.getElementById('btnImperial'),
+    appleIcon: document.getElementById('appleIcon'),
+  };
 
-    function calculate() {
-      const distance = parseFloat(document.getElementById('distance').value);
-      const fuel = parseFloat(document.getElementById('fuel').value);
-      const price = parseFloat(document.getElementById('price').value);
+  const LS_KEY = 'fuelcalc_v1';
+  const QS = k => Number((k||0).toString().replace(',', '.')) || 0;
+  const fmt = (n, d=2) => isFinite(n) ? n.toLocaleString('hu-HU',{maximumFractionDigits:d, minimumFractionDigits: n>0 && n<1 ? Math.min(d,2):0}) : '–';
 
-      if (!distance || !fuel || distance <= 0 || fuel <= 0) {
-        resultDiv.textContent = "Adj meg érvényes adatokat!";
-        return;
-      }
+  let units = localStorage.getItem('fuelcalc_units') || 'metric';
+  function refreshUnitUI(){
+    const metric = units==='metric';
+    ui.btnMetric.classList.toggle('active', metric);
+    ui.btnImperial.classList.toggle('active', !metric);
+    ui.unitDistance.textContent = metric ? '(km)' : '(miles)';
+    ui.unitFuel.textContent = metric ? '(liter)' : '(gallons)';
+    ui.unitPrice.textContent = metric ? '(Ft / liter · opcionális)' : '(Ft / gallon · opcionális)';
+    ui.labelL100.textContent = metric ? 'liter / 100 km' : 'gallons / 100 miles';
+    ui.labelKml.textContent = metric ? 'km / liter' : 'mpg';
+    ui.labelCost100.textContent = metric ? 'Ft / 100 km' : 'Ft / 100 miles';
+    calc();
+  }
 
-      const lPer100 = (fuel / distance) * 100;
-      const kmPerL = distance / fuel;
+  ui.btnMetric.onclick = ()=>{ units='metric'; localStorage.setItem('fuelcalc_units',units); refreshUnitUI(); };
+  ui.btnImperial.onclick = ()=>{ units='imperial'; localStorage.setItem('fuelcalc_units',units); refreshUnitUI(); };
 
-      let text = `Fogyasztás: ${lPer100.toFixed(2)} L / 100 km | ${kmPerL.toFixed(2)} km/L`;
-
-      if (price && price > 0) {
-        const costPer100 = lPer100 * price;
-        text += ` | Költség: ${costPer100.toFixed(0)} Ft / 100 km`;
-      }
-
-      resultDiv.textContent = text;
-      saveHistory(distance, fuel, price, lPer100);
-      renderHistory();
+  function calc(){
+    const d = QS(ui.distance.value);
+    const f = QS(ui.fuel.value);
+    const p = QS(ui.price.value);
+    if (d<=0 || f<=0){
+      ui.statL100.textContent = '–';
+      ui.statKml.textContent = '–';
+      ui.statCost100.textContent = '–';
+      ui.statTripCost.textContent = '–';
+      return;
     }
-
-    function saveHistory(distance, fuel, price, lPer100) {
-      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
-      history.push({ 
-        date: new Date().toLocaleString(), 
-        distance, 
-        fuel, 
-        price: price || null, 
-        lPer100: lPer100.toFixed(2) 
-      });
-      localStorage.setItem("fuelHistory", JSON.stringify(history));
+    if(units==='metric'){
+      const l100 = (f/d)*100;    // L/100km
+      const kml = d/f;           // km/L
+      const cost100 = p? l100*p : NaN;
+      const tripCost = p? f*p : NaN;
+      ui.statL100.textContent = fmt(l100,2);
+      ui.statKml.textContent = fmt(kml,2);
+      ui.statCost100.textContent = isFinite(cost100)? fmt(cost100,0) : '–';
+      ui.statTripCost.textContent = isFinite(tripCost)? fmt(tripCost,0) : '–';
+    } else {
+      // imperial
+      const g100mi = (f/d)*100;         // gal / 100 miles
+      const mpg = d/f;                  // miles / gallon
+      const cost100 = p? g100mi*p : NaN;
+      const tripCost = p? f*p : NaN;
+      ui.statL100.textContent = fmt(g100mi,2);
+      ui.statKml.textContent = fmt(mpg,2);
+      ui.statCost100.textContent = isFinite(cost100)? fmt(cost100,0) : '–';
+      ui.statTripCost.textContent = isFinite(tripCost)? fmt(tripCost,0) : '–';
     }
+  }
+  ['input','change','keyup'].forEach(ev=>{
+    ui.distance.addEventListener(ev, calc);
+    ui.fuel.addEventListener(ev, calc);
+    ui.price.addEventListener(ev, calc);
+  });
 
-    function renderHistory() {
-      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
-      historyDiv.innerHTML = "<h3>Előzmények:</h3>" + history.map(item =>
-        `<div class="history-item">
-          <span>${item.date}</span>
-          <span>${item.lPer100} L/100km</span>
-        </div>`
-      ).join("");
+  function load(){
+    const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    ui.rows.innerHTML = '';
+    for(const it of arr){ addRow(it); }
+  }
+
+  function addRow(it){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(it.t).toLocaleString('hu-HU')}</td>
+      <td>${fmt(it.d,2)} ${it.units==='metric'?'km':'mi'}</td>
+      <td>${fmt(it.f,3)} ${it.units==='metric'?'L':'gal'}</td>
+      <td>${fmt(it.main,2)} ${it.units==='metric'?'L/100km':'gal/100mi'}</td>
+      <td>${isFinite(it.cost100)? fmt(it.cost100,0)+' Ft':'–'}</td>
+      <td>${isFinite(it.tripCost)? fmt(it.tripCost,0)+' Ft':'–'}</td>
+      <td><button class="btn ghost btnDel">Törlés</button></td>
+    `;
+    tr.querySelector('.btnDel').onclick = ()=>{ del(it.t); };
+    ui.rows.prepend(tr);
+  }
+
+  function save(){
+    const d = QS(ui.distance.value), f = QS(ui.fuel.value), p = QS(ui.price.value);
+    if(d<=0 || f<=0){ alert('Adj meg távolságot és tankolt mennyiséget!'); return; }
+    let main, cost100, tripCost;
+    if(units==='metric'){
+      main = (f/d)*100; // L/100km
+      cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
+    } else {
+      main = (f/d)*100; // gal/100mi
+      cost100 = p? main*p : NaN; tripCost = p? f*p : NaN;
     }
+    const it = { t: Date.now(), d, f, p, units, main, cost100, tripCost };
+    const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    arr.push(it); localStorage.setItem(LS_KEY, JSON.stringify(arr));
+    addRow(it);
+  }
+  function del(t){
+    let arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    arr = arr.filter(x=>x.t!==t); localStorage.setItem(LS_KEY, JSON.stringify(arr));
+    load();
+  }
 
-    function clearHistory() {
-      localStorage.removeItem("fuelHistory");
-      historyDiv.innerHTML = "";
-    }
+  ui.btnSave.onclick = save;
+  ui.btnClear.onclick = ()=>{ ui.distance.value=''; ui.fuel.value=''; ui.price.value=''; calc(); };
+  ui.btnWipe.onclick = ()=>{ if(confirm('Biztosan törlöd az összes mentést?')){ localStorage.removeItem(LS_KEY); load(); } };
+  ui.btnExport.onclick = ()=>{
+    const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    if(!arr.length){ alert('Nincs mit exportálni.'); return; }
+    const csv = ['date;distance;fuel;consumption;cost_per_100;trip_cost;units'].concat(
+      arr.map(it=>[
+        new Date(it.t).toISOString(),
+        it.d, it.f, it.main, isFinite(it.cost100)?it.cost100:'', isFinite(it.tripCost)?it.tripCost:'', it.units
+      ].join(';'))
+    ).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fuelcalc_export.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
-    function exportCSV() {
-      const history = JSON.parse(localStorage.getItem("fuelHistory") || "[]");
-      if (!history.length) return alert("Nincs exportálható adat!");
-      const header = "Dátum;Távolság (km);Üzemanyag (L);Ár (Ft/L);Fogyasztás (L/100km)\n";
-      const rows = history.map(h => `${h.date};${h.distance};${h.fuel};${h.price || ""};${h.lPer100}`).join("\n");
-      const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+  // PWA: manifest + ikon + service worker (minden egy fájlban)
+  (function setupPWA(){
+    // Ikon generálása (512x512 PNG) – egyszerű gradient + ⛽️ emoji
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createLinearGradient(0,0,512,512);
+    g.addColorStop(0,'#0ea5e9'); g.addColorStop(1,'#22c55e');
+    ctx.fillStyle = g; ctx.fillRect(0,0,512,512);
+    ctx.fillStyle = 'rgba(255,255,255,.15)';
+    for(let i=0;i<6;i++){ ctx.beginPath(); ctx.arc(80+i*72, 420- i*38, 140, 0, Math.PI*2); ctx.fill(); }
+    ctx.font = 'bold 320px system-ui,Segoe UI Emoji'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle = '#ffffff';
+    ctx.fillText('⛽️', 256, 270);
+    const iconURL = canvas.toDataURL('image/png');
+    document.querySelector('link#appleIcon').href = iconURL;
+
+    const manifest = {
+      name: 'FuelCalc – Üzemanyag kalkulátor',
+      short_name: 'FuelCalc',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#0b111f',
+      theme_color: '#0ea5e9',
+      icons: [{ src: iconURL, sizes:'512x512', type:'image/png' }]
+    };
+    const mblob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    const murl = URL.createObjectURL(mblob);
+    const link = document.createElement('link');
+    link.rel='manifest'; link.href = murl; document.head.appendChild(link);
+
+    if('serviceWorker' in navigator){
+      const swCode = `
+        const CACHE='fuelcalc-v1';
+        self.addEventListener('install', e=>{ self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./']))); });
+        self.addEventListener('activate', e=>{ e.waitUntil(self.clients.claim()); });
+        self.addEventListener('fetch', e=>{
+          e.respondWith((async()=>{
+            const r = await caches.match(e.request); if(r) return r; const f = await fetch(e.request); const c = await caches.open(CACHE); c.put(e.request, f.clone()); return f; })());
+        });`;
+      const blob = new Blob([swCode], {type:'text/javascript'});
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "uzemanyag.csv";
-      a.click();
+      navigator.serviceWorker.register(url);
     }
 
-    renderHistory();
-  </script>
+    // Telepítés gomb
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; ui.btnInstall.hidden = false; });
+    ui.btnInstall.addEventListener('click', async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt = null; ui.btnInstall.hidden = true; });
+  })();
 
-  <!-- Service Worker -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js").catch(err => console.error("SW hiba:", err));
-    }
-  </script>
+  // init
+  refreshUnitUI();
+  load();
+  calc();
+</script>
+
 </body>
 </html>
